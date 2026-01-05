@@ -1,0 +1,58 @@
+$textColor: #ffffff;
+$borderColor: grey;
+$errorColor: orangered;
+
+.textbox {
+  position: relative;
+
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+
+  border-radius: 0.25rem;
+  border: 1px solid $borderColor;
+  outline: 0;
+
+  color: $textColor;
+
+  &.error {
+    border-color: $errorColor;
+
+    &:active,
+    &:focus {
+      border-color: $errorColor;
+    }
+  }
+
+  &:active,
+  &:focus {
+    border-color: #1677ff;
+  }
+
+  &--wrapper {
+    border: 0;
+    outline: 0;
+    flex-direction: column;
+    gap: 0.75rem;
+    display: flex;
+  }
+
+  &__label {
+    &.required {
+      display: flex;
+      gap: 0.25rem;
+
+      &::after {
+        content: "*";
+
+        margin-top: -0.125rem;
+        color: orangered;
+      }
+    }
+  }
+
+  &__error {
+    display: block;
+
+    color: $errorColor;
+  }
+}

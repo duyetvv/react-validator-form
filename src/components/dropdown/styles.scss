@@ -1,0 +1,81 @@
+$textColor: #ffffff;
+$borderColor: grey;
+$radius: 0.25rem;
+
+.dropdown {
+  position: relative;
+
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+
+  border-radius: $radius;
+  border: 1px solid $borderColor;
+
+  color: $textColor;
+  box-sizing: content-box;
+
+  &.toggled {
+    border-radius: $radius $radius 0 0;
+  }
+
+  &.loading {
+    display: inline-block;
+    overflow: hidden;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.75rem;
+    text-shadow: 0 0 $textColor;
+    animation: marquee 2s infinite ease;
+  }
+
+  &-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+
+    padding: 0 0.5rem;
+
+    cursor: pointer;
+
+    &-icon {
+      position: relative;
+      width: 0.5rem;
+      height: 0.5rem;
+
+      border-right: 1px solid $borderColor;
+      border-bottom: 1px solid $borderColor;
+
+      transform: translateY(-0.0625rem) rotate(45deg);
+    }
+  }
+
+  &-menu {
+    position: absolute;
+
+    display: flex;
+    flex-direction: column;
+
+    top: 100%;
+    left: -1px;
+    min-width: calc(100% + 2px);
+    max-height: 15rem;
+    overflow: auto;
+
+    background-color: darkslategray;
+    border: 1px solid $borderColor;
+    border-radius: 0 0 $radius $radius;
+    z-index: 1;
+
+    &-item {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+  }
+}
+
+@keyframes marquee {
+  to {
+    text-shadow: 20rem 0 $textColor;
+  }
+}
