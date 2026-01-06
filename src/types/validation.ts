@@ -12,3 +12,7 @@ export type ValidationSnapshot = {
   isValid: boolean;
 };
 
+export type ValidationField = {
+  name: string;
+  isValid?: boolean;
+};

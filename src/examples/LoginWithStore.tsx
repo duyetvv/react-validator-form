@@ -1,33 +1,36 @@
-import React from "react";
-
 import Form, { type FormProps } from "../components/form";
 import Textbox, { type TextBoxProps } from "../components/textbox";
 import { createValidatorStore } from "../validator/store";
+// import { useFormState } from "../validator/hook";
+// import { useSyncExternalStore } from "react";
 
-export function createLoginForm(fieldNames: string[] = []) {
+const createLoginFormStore = () => {
   const store = createValidatorStore("login");
+  store.registerFields([
+    { name: "username", isValid: false },
+    { name: "password", isValid: false },
+  ]);
 
-  if (fieldNames.length) {
-    store.registerFields(fieldNames);
-  }
+  // const formState = useSyncExternalStore(
+  //   store.subscribe,
+  //   store.getSnapshot,
+  //   store.getSnapshot
+  // );
 
+  console.log("createLoginFormStore run", store, store.getSnapshot());
   return {
     isValid: store.getSnapshot().isValid,
     Form: (props: FormProps) => <Form {...props} />,
-    Textbox: (props: TextBoxProps) => (
-      <Textbox {...props} store={store} />
-    ),
+    Textbox: (props: TextBoxProps) => <Textbox {...props} store={store} />,
   };
-}
+};
+
+const LoginForm = createLoginFormStore();
 
 function LoginScreen() {
-  const LoginForm = React.useMemo(
-    () => createLoginForm(["username", "password"]),
-    []
-  );
-
   const submit = () => {
-    console.log("Submit ", LoginForm.isValid);
+    const message = LoginForm.isValid ? "Form is valid" : "Form is not valid";
+    window.alert(message);
   };
 
   return (
@@ -45,6 +48,7 @@ function LoginScreen() {
           name="password"
           rules={{ required: true, minLength: 8 }}
         />
+        <button>Submit</button>
       </LoginForm.Form>
     </div>
   );

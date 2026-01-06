@@ -2,11 +2,11 @@ import {
   type ChangeEvent,
   type FocusEvent,
   useCallback,
-  useMemo,
+  useEffect,
   useState,
 } from "react";
 import { RuleKey, type Rules } from "../../types/rules";
-import Validator, { type ValidatorStore } from "../../validator";
+import Validator from "../../validator/tmpValidator";
 
 import "./styles.scss";
 
@@ -24,7 +24,6 @@ export interface TextBoxProps {
   placeholder?: string;
   genericName?: string;
   rules?: Rules;
-  store?: ValidatorStore;
   onChangeText?: (evt: InteractEvent) => void;
   onBlurText?: (evt: InteractEvent) => void;
   [key: string]: any;
@@ -33,56 +32,75 @@ export interface TextBoxProps {
 function TextBox({
   type,
   name,
-  defVal,
+  defVal = "",
   label,
   placeholder,
   rules = {},
   onChangeText,
   onBlurText,
   genericName,
-  store,
   ...rest
 }: TextBoxProps) {
   const [errors, setErrors] = useState<Record<string, string>[]>();
-  const validator = useMemo(() => Validator.initStore(store), []);
 
-  const validateInput = useCallback((value: string): boolean => {
-    const result = validator.validate(rules, genericName || name, value);
+  const validateInput = useCallback(
+    (
+      value: string
+    ): { isValid: boolean; errMsgs: Record<string, string>[] } => {
+      const result = Validator.validate(rules, genericName || name, value);
 
-    const errsMsg = result.reduce<Record<string, string>[]>(
-      (accumulator, ele) => {
-        if (!ele.isValid) {
-          accumulator.push({
-            code: ele.res?.code || "",
-            message: ele.res?.msg || "",
-          });
-        }
+      const errsMsg = result.reduce<Record<string, string>[]>(
+        (accumulator, ele) => {
+          if (!ele.isValid) {
+            accumulator.push({
+              code: ele.res?.code || "",
+              message: ele.res?.msg || "",
+            });
+          }
 
-        return accumulator;
-      },
-      []
-    );
+          return accumulator;
+        },
+        []
+      );
 
-    setErrors(errsMsg);
+      return { isValid: errsMsg.length === 0, errMsgs: errsMsg };
+    },
+    []
+  );
 
-    return errsMsg.length > 0;
-  }, []);
+  useEffect(() => {
+    if (rules) {
+      const { isValid } = validateInput(defVal);
+
+      if (typeof onChangeText === "function") {
+        onChangeText({ name, value: defVal, isValid });
+      }
+
+      if (typeof onBlurText === "function") {
+        onBlurText({ name, value: defVal, isValid });
+      }
+    }
+  }, [validateInput]);
 
   const onBlurInput = useCallback((evt: FocusEvent<HTMLInputElement>) => {
     const { value } = evt.target;
-    validateInput(value);
+    const { isValid, errMsgs } = validateInput(value);
+
+    setErrors(errMsgs);
 
     if (typeof onBlurText === "function") {
-      onBlurText({ name, value });
+      onBlurText({ name, value, isValid });
     }
   }, []);
 
   const onChangeInput = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target;
-    validateInput(value);
+    const { isValid, errMsgs } = validateInput(value);
+
+    setErrors(errMsgs);
 
     if (typeof onChangeText === "function") {
-      onChangeText({ name, value });
+      onChangeText({ name, value, isValid });
     }
   };
 

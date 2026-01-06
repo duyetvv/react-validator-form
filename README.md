@@ -134,7 +134,6 @@ export type RuleResult = {
 - Defined the types of Validations inside file `types/validation.ts`
 
 ```ts
-import type { RuleResponse } from "./rules";
 
 export const defIsValid = true;
 
@@ -171,11 +170,9 @@ export const ErrorMessage = {
 
 ### Step 1: Prepare validation validation rules
 
-#### 1. Create the base class for Validator Rule.
-
+#### 1. Create the base class for Validator Rule. 
+[Full code](https://github.com/duyetvv/react-validator-form/blob/main/src/rules/base.ts)
 ```ts
-import type { RuleParam, RuleResponse } from "../types/rules";
-
 export abstract class BaseRule {
   abstract test(params: RuleParam): boolean;
   abstract res(params: RuleParam): RuleResponse;
@@ -187,21 +184,14 @@ export abstract class BaseRule {
 ```
 
 #### 2. Create the specific validator rule.
-
+[Full code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/rules/required.ts)
 ```ts
-import { BaseRule } from "./base";
-import { ErrorCode } from "../assets/data/code";
-import { ErrorMessage } from "../assets/data/message";
-
-import type { RuleParam, RuleResponse } from "../types/rules";
-
 class RequiredRule extends BaseRule {
   test({ val }: RuleParam): boolean {
     return !!val && val.length > 0;
   }
 
   res({ name, arg }: RuleParam): RuleResponse {
-    // const that = this;
     return {
       name,
       code: ErrorCode.required,
@@ -221,14 +211,9 @@ export default RequiredRule;
 
 ### Step 2: Create the validator
 
-- Create the RulesMapping factory.
+- Create the RulesMapping factory [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/mapping.ts)
 
 ```ts
-import { RuleKey } from "../types/rules";
-
-import RequiredRuleInst from "../rules/required";
-import PhoneRule from "../rules/phone";
-
 export const RulesMapping = [
   { ruleName: RuleKey.required, inst: new RequiredRuleInst() },
   { ruleName: RuleKey.phone, inst: new PhoneRule() },
@@ -236,35 +221,13 @@ export const RulesMapping = [
 ];
 ```
 
-- Create the Validator class
+- Create the Validator class at link with the validate function at: [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/tmpValidator.ts)
 
 ```ts
-import type { BaseRule } from "../rules/base";
-
-import { RulesMapping } from "./mapping";
-import { type Rules } from "../types/rules";
-import type { ValidationResult } from "../types/validation";
-
-/**
- * @class Validator
- * @description A static class to manage validation rules and perform validation.
- * It is initialized with a set of default rules and can be extended with custom rules.
- * It can also be connected to a store to keep track of the validation state of a form.
- */
+ 
 class Validator {
-  /**
-   * A map to store the registered validation rules.
-   * @private
-   * @static
-   */
   private static rules = new Map<string, BaseRule>();
 
-  /**
-   * Initializes the validator by registering the rules from RulesMapping.
-   * This method should be called before any other method of the class.
-   * @static
-   * @returns The Validator class for chaining.
-   */
   static init() {
     RulesMapping.forEach((rule) => {
       this.add(rule.ruleName, rule.inst);
@@ -272,23 +235,10 @@ class Validator {
     return this;
   }
 
-  /**
-   * Adds a new validation rule to the validator.
-   * @static
-   * @param ruleName - The name of the rule.
-   * @param ruleInst - The rule instance, which should be a class that extends BaseRule.
-   */
   static add(ruleName: string, ruleInst: BaseRule): void {
     this.rules.set(ruleName, ruleInst);
   }
 
-  /**
-   * Gets a validation rule by name.
-   * @static
-   * @param ruleName - The name of the rule.
-   * @returns The rule instance.
-   * @throws An error if the rule is not registered.
-   */
   static get(ruleName: string): BaseRule {
     const rule = this.rules.get(ruleName);
     if (!rule) {
@@ -297,14 +247,6 @@ class Validator {
     return rule;
   }
 
-  /**
-   * Validates a value against a set of rules.
-   * @static
-   * @param rules - The rules to validate against.
-   * @param fieldName - The name of the field being validated.
-   * @param val - The value to validate.
-   * @returns An array of validation results for each rule.
-   */
   static validate(
     rules: Rules,
     fieldName: string,
@@ -327,11 +269,6 @@ class Validator {
     });
   }
 
-  /**
-   * Destroys the validator by clearing all registered rules.
-   * This is useful for cleanup, especially in testing environments.
-   * @static
-   */
   static destroy() {
     this.rules.clear();
   }
@@ -372,6 +309,6 @@ const onBlurInput = (evt: FocusEvent<HTMLInputElement>) => {
   }
 };
 ```
-Refer full example input at: 
+Refer full example input at: [textbox](https://github.com/duyetvv/react-validator-form/blob/main/src/components/textbox/index.tsx)
 
 ## License

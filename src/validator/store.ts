@@ -1,14 +1,11 @@
 import {
   type ValidationResult,
   type ValidationSnapshot,
+  type ValidationField,
+  defIsValid,
 } from "../types/validation";
 
 type Listener = () => void;
-
-type RegisterFields = {
-  name: string;
-  isValid?: boolean;
-};
 
 /**
  * Creates a new validator store for a form.
@@ -38,14 +35,16 @@ export function createValidatorStore(formName: string) {
    * @returns A snapshot of the current validation state.
    */
   function getSnapshot() {
+    console.log("getSnapshot fieldStates", fieldStates);
+
     if (cachedSnapshot) {
       return cachedSnapshot;
     }
 
     let isValid = true;
 
-    fieldStates.forEach((result) => {
-      if (!result?.isValid) {
+    fieldStates.forEach((field) => {
+      if (!field?.isValid) {
         isValid = false;
       }
     });
@@ -61,7 +60,7 @@ export function createValidatorStore(formName: string) {
    * @param name The name of the field.
    * @param isValid The initial validation state of the field.
    */
-  function registerField(name: string, isValid: boolean = true) {
+  function registerField(name: string, isValid: boolean = defIsValid) {
     if (fieldStates.has(name)) return;
 
     fieldStates.set(name, {
@@ -75,7 +74,7 @@ export function createValidatorStore(formName: string) {
      * Registers one or more fields in the store.
      * @param fields An array of field names or an array of objects with a name and an optional isValid property.
      */
-    registerFields(fields: RegisterFields[] | string[]) {
+    registerFields(fields: ValidationField[] | string[]) {
       fields.forEach((field) => {
         if (typeof field === "string") {
           registerField(field);
