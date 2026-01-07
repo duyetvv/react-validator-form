@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
 import Form from "../components/form";
-import Textbox, {
-  type InteractEvent,
-} from "../components/textbox/withoutStore";
+import Textbox, { type InteractEvent } from "../components/textbox";
 
 function LoginWithoutStoreScreen() {
   const [isFormValid, setIsFormValid] = useState(true);

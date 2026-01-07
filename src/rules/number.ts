@@ -2,7 +2,7 @@ import { BaseRule } from "./base";
 import { ErrorCode } from "../assets/data/code";
 import { ErrorMessage } from "../assets/data/message";
 
-import type { RuleParam, RuleResponse } from "../types/rules";
+import type { RuleParam, RuleResponse } from "../types";
 
 class NumberRule extends BaseRule {
   test({ val }: RuleParam): boolean {

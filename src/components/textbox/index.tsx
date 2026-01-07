@@ -5,7 +5,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { RuleKey, type Rules } from "../../types/rules";
+
+import { type Rules, RuleKey } from "../../types";
 import Validator, { type ValidatorStore } from "../../validator";
 
 import "./styles.scss";
@@ -47,25 +48,16 @@ function TextBox({
   const validator = useMemo(() => Validator.initStore(store), []);
 
   const validateInput = useCallback((value: string): boolean => {
-    const result = validator.validate(rules, genericName || name, value);
+    const result = validator.run(rules, genericName || name, value);
 
-    const errsMsg = result.reduce<Record<string, string>[]>(
-      (accumulator, ele) => {
-        if (!ele.isValid) {
-          accumulator.push({
-            code: ele.res?.code || "",
-            message: ele.res?.msg || "",
-          });
-        }
-
-        return accumulator;
-      },
-      []
+    setErrors(
+      result.res?.map((ele) => ({
+        code: ele.code || "",
+        message: ele.msg || "",
+      }))
     );
 
-    setErrors(errsMsg);
-
-    return errsMsg.length > 0;
+    return result.isValid;
   }, []);
 
   const onBlurInput = useCallback((evt: FocusEvent<HTMLInputElement>) => {

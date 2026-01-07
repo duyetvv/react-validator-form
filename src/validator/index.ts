@@ -1,7 +1,6 @@
 import type { BaseRule } from "../rules/base";
 
-import { type Rules } from "../types/rules";
-import type { ValidationResult } from "../types/validation";
+import type { FieldResult, Rules } from "../types";
 import { type ValidatorStore } from "./store";
 
 import { RulesMapping } from "./mapping";
@@ -84,15 +83,11 @@ class Validator {
    * @param val - The value to validate.
    * @returns An array of validation results for each rule.
    */
-  static validate(
-    rules: Rules,
-    fieldName: string,
-    val: string
-  ): ValidationResult[] {
+  static run(rules: Rules, fieldName: string, val: string): FieldResult {
     const rulekeys = Object.keys(rules);
 
     if (!rulekeys.length) {
-      return [{ isValid: true, res: null }];
+      return { isValid: true, res: null };
     }
 
     const result = rulekeys.map((ruleKey) => {
@@ -105,17 +100,21 @@ class Validator {
       };
     });
 
-    if (this.store) {
-      const errors = result.filter((r) => !r.isValid);
-      const isValid = errors.length === 0;
+    const invalidRules = result.filter((r) => !r.isValid);
+    const isValid = invalidRules.length === 0;
+    const inValidRes = invalidRules.map((r) => r.res);
 
+    if (this.store) {
       this.store.updateField(fieldName, {
-        isValid: isValid,
-        res: isValid ? null : errors[0].res,
+        isValid,
+        res: inValidRes || null,
       });
     }
 
-    return result;
+    return {
+      isValid,
+      res: inValidRes || null,
+    };
   }
 
   /**

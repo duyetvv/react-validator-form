@@ -1,9 +1,8 @@
 import {
-  type ValidationResult,
-  type ValidationSnapshot,
-  type ValidationField,
-  defIsValid,
-} from "../types/validation";
+  type FieldResult,
+  type FieldState,
+  defState,
+} from "../types";
 
 type Listener = () => void;
 
@@ -13,11 +12,9 @@ type Listener = () => void;
  * @param formName The name of the form.
  * @returns A form validator store.
  */
-export function createValidatorStore(formName: string) {
-  const fieldStates = new Map<string, ValidationResult | null>();
-  const listeners = new Set<Listener>();
-
-  let cachedSnapshot: ValidationSnapshot | null = null;
+export function createValidatorStore() {
+  const listeners: Set<Listener> = new Set();
+  const fieldsMap: Map<string, FieldResult> = new Map();
 
   /**
    * Notifies all listeners that the store has changed.
@@ -25,33 +22,7 @@ export function createValidatorStore(formName: string) {
    * It clears the cached snapshot and calls all listeners.
    */
   function notify() {
-    cachedSnapshot = null;
     listeners.forEach((l) => l());
-  }
-
-  /**
-   * Gets a snapshot of the current validation state.
-   * The snapshot is cached to avoid recomputing it on every call.
-   * @returns A snapshot of the current validation state.
-   */
-  function getSnapshot() {
-    console.log("getSnapshot fieldStates", fieldStates);
-
-    if (cachedSnapshot) {
-      return cachedSnapshot;
-    }
-
-    let isValid = true;
-
-    fieldStates.forEach((field) => {
-      if (!field?.isValid) {
-        isValid = false;
-      }
-    });
-
-    cachedSnapshot = { formName, isValid };
-
-    return cachedSnapshot;
   }
 
   /**
@@ -60,22 +31,19 @@ export function createValidatorStore(formName: string) {
    * @param name The name of the field.
    * @param isValid The initial validation state of the field.
    */
-  function registerField(name: string, isValid: boolean = defIsValid) {
-    if (fieldStates.has(name)) return;
-
-    fieldStates.set(name, {
-      isValid: isValid,
-      res: null,
-    });
+  function registerField(name: string, isValid: boolean = defState) {
+    if (fieldsMap.has(name)) return;
+    fieldsMap.set(name, { isValid, res: null });
   }
 
   return {
     /**
      * Registers one or more fields in the store.
-     * @param fields An array of field names or an array of objects with a name and an optional isValid property.
+     * @param registeredfields An array of field names
+     * or an array of objects with a name and an optional isValid property.
      */
-    registerFields(fields: ValidationField[] | string[]) {
-      fields.forEach((field) => {
+    registerFields(registeredfields: string[] | FieldState[]) {
+      registeredfields.forEach((field) => {
         if (typeof field === "string") {
           registerField(field);
         } else {
@@ -92,12 +60,8 @@ export function createValidatorStore(formName: string) {
      * @param result The new validation result.
      * @throws An error if the field is not registered.
      */
-    updateField(name: string, result: ValidationResult) {
-      if (!fieldStates.has(name)) {
-        throw new Error(`Unregistered field: ${name}`);
-      }
-
-      fieldStates.set(name, result);
+    updateField(name: string, fieldState: FieldResult) {
+      fieldsMap.set(name, fieldState);
       notify();
     },
 
@@ -116,7 +80,15 @@ export function createValidatorStore(formName: string) {
      * @returns A snapshot of the current validation state.
      */
     getSnapshot() {
-      return getSnapshot();
+      let isValid = true;
+
+      fieldsMap.forEach((fieldRes) => {
+        if (!fieldRes.isValid) {
+          isValid = false;
+        }
+      });
+
+      return isValid;
     },
 
     /**
@@ -125,7 +97,7 @@ export function createValidatorStore(formName: string) {
      */
     unsubscribe() {
       listeners.clear();
-      fieldStates.clear();
+      fieldsMap.clear();
     },
   };
 }

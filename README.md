@@ -8,7 +8,7 @@ Sometimes, you need to build the special validator for the paticular purpose. Bu
 
 ## Idea
 
-You have the input with the validation rules. And you want to split the validators individually, The Validator wont intersect to each others.
+You have the input with the validation rules. And you want to split the validators individually, The Validator won't be intersected to each others.
 
 ```ts
 export abstract class BaseRule {
@@ -24,128 +24,88 @@ export abstract class BaseRule {
 The Input should validate itself, and care its own validated status and it's error UI.
 
 ```tsx
-<LoginForm.Form onSubmit={submit}>
-  <LoginForm.Textbox
-    type="text"
-    label="Username"
-    name="username"
-    rules={{ required: true, minLength: 5 }}
-  />
-  <LoginForm.Textbox
-    type="text"
-    label="Password"
-    name="password"
-    rules={{ required: true, minLength: 8 }}
-  />
-</LoginForm.Form>
+const validateInput = useCallback((value: string): boolean => {
+  const result = validator.run(rules, name, value);
+
+  setErrors(
+    result.res?.map((ele) => ({
+      code: ele.code || "",
+      message: ele.msg || "",
+    }))
+  );
+
+  return result.isValid;
+}, []);
+
+...
+
+<fieldset className="textbox--wrapper">
+  // Input field
+  {errors && errors.length
+        ? errors.map((err) => (
+            <span key={err["code"]} className="textbox__error">
+              {err["message"]}
+            </span>
+          ))
+        : ""}
+</fieldset>
 ```
 
-The form status should reflected by the status of controls that registered to it throught the isValid variable from created Form.
+The form just get the state from the store to handle logic.
 
 ```ts
-const LoginForm = React.useMemo(
-  () => createLoginForm(["username", "password"]),
-  []
-);
+const formState = useSyncExternalStore(store.subscribe, store.getSnapshot);
+
+const submit = () => {
+  const message = formState ? "Form is valid" : "Form is not valid";
+  window.alert(message);
+};
 ```
 
 ## Implementation
 
 ### Preposition
 
-- Defined the types inside file `types/rules.ts`
+- Defined the necessary types inside file `src/types`
 
 ```ts
-/**
- * Enum for the available rule keys.
- * This provides a centralized definition of all possible validation rule names.
- */
 export enum RuleKey {
   required = "required",
   phone = "phone",
 }
 
-/**
- * Type representing the name of a validation rule.
- * It's a union of all possible `RuleKey` values.
- */
 export type RuleName = RuleKey.required | RuleKey.phone;
 
-/**
- * Type for a collection of rules.
- * It's a key-value pair where the key is the rule name and the value is the rule argument.
- *
- * @example
- * const rules: Rules = {
- *   required: true,
- *   minLength: 8,
- * };
- */
 export type Rules = {
   [key: string]: any;
 };
 
-/**
- * Type for the arguments that can be passed to a rule.
- * It can be a single string or an array of strings.
- */
 export type ArgType = string | string[];
 
-/**
- * Interface representing the parameters for a validation rule function.
- * This is the input for a validation function.
- */
-export interface RuleParam {
-  /** The value to be validated. */
+export type RuleParam = {
   val: string;
-  /** The name of the field being validated. */
   name: string;
-  /** The arguments for the validation rule. */
   arg?: ArgType;
-}
+};
 
-/**
- * Interface for the response of a validation rule.
- * This is part of the output of a validation function when validation fails.
- */
-export interface RuleResponse {
-  /** The name of the field that was validated. */
+export type RuleResponse = {
   name: string;
-  /** The arguments that were used for the validation rule. */
   arg?: ArgType;
-  /** A code representing the validation error. */
   code: string;
-  /** The error message for the validation failure. */
   msg: string;
-}
-
-/**
- * Type for the result of a validation rule function.
- * This is the output of a validation function.
- */
-export type RuleResult = {
-  /** Whether the validation was successful. */
-  isValid: boolean;
-  /** The response of the validation rule, which is null if validation was successful. */
-  res: RuleResponse | null;
-};
-```
-
-- Defined the types of Validations inside file `types/validation.ts`
-
-```ts
-
-export const defIsValid = true;
-
-export type ValidationResult = {
-  isValid: boolean;
-  res: RuleResponse | null;
 };
 
-export type ValidationSnapshot = {
-  formName: string;
-  isValid: boolean;
+export type FieldState = {
+  name: string;
+  isValid?: boolean;
 };
+
+export type FieldResult = {
+  isValid: boolean;
+  res: RuleResponse[] | null;
+};
+
+export const defState = true;
 ```
 
 - Create the ErrorCode `assets/data/code.ts` you also can create yoruself by multiple languages or just hardcode it.
@@ -170,48 +130,47 @@ export const ErrorMessage = {
 
 ### Step 1: Prepare validation validation rules
 
-#### 1. Create the base class for Validator Rule. 
-[Full code](https://github.com/duyetvv/react-validator-form/blob/main/src/rules/base.ts)
-```ts
-export abstract class BaseRule {
-  abstract test(params: RuleParam): boolean;
-  abstract res(params: RuleParam): RuleResponse;
+#### 1.1 Create the base class for Validator Rule.[Full code](https://github.com/duyetvv/react-validator-form/blob/main/src/rules/base.ts)
 
-  message(orgMsg: string, fieldName: string, arg: string): string {
-    return orgMsg.replace("{#fieldName}", fieldName).replace("{#arg}", arg);
-  }
-}
-```
+    ```ts
+    export abstract class BaseRule {
+      abstract test(params: RuleParam): boolean;
+      abstract res(params: RuleParam): RuleResponse;
 
-#### 2. Create the specific validator rule.
-[Full code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/rules/required.ts)
-```ts
-class RequiredRule extends BaseRule {
-  test({ val }: RuleParam): boolean {
-    return !!val && val.length > 0;
-  }
+      message(orgMsg: string, fieldName: string, arg: string): string {
+        return orgMsg.replace("{#fieldName}", fieldName).replace("{#arg}", arg);
+      }
+      // You can also build your message function for yourself
+    }
+    ```
 
-  res({ name, arg }: RuleParam): RuleResponse {
-    return {
-      name,
-      code: ErrorCode.required,
-      msg: this.message(
-        ErrorMessage.required,
-        name,
-        Array.isArray(arg) ? arg[0] : arg || ""
-      ),
-    };
-  }
-}
+#### 1.2 Create the specific validator rule. EX: [Required Rule]|(https://github.com/duyetvv/react-validator-form/blob/main/src/rules/required.ts)
 
-export default RequiredRule;
-```
+    ```ts
+    class RequiredRule extends BaseRule {
+      test({ val }: RuleParam): boolean {
+        return !!val && val.length > 0;
+      }
 
-#### The references for other rules should under folder `root/src/rules/{filename}.ts`
+      res({ name, arg }: RuleParam): RuleResponse {
+        return {
+          name,
+          code: ErrorCode.required,
+          msg: this.message(
+            ErrorMessage.required,
+            name,
+            Array.isArray(arg) ? arg[0] : arg || ""
+          ),
+        };
+      }
+    }
+
+    export default RequiredRule;
+    ```
 
 ### Step 2: Create the validator
 
-- Create the RulesMapping factory [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/mapping.ts)
+#### 2.1 Create the RulesMapping factory [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/mapping.ts)
 
 ```ts
 export const RulesMapping = [
@@ -221,44 +180,20 @@ export const RulesMapping = [
 ];
 ```
 
-- Create the Validator class at link with the validate function at: [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/tmpValidator.ts)
+#### 2.2 Create the Validator class at link with the run function at: [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/index.ts)
 
 ```ts
- 
 class Validator {
   private static rules = new Map<string, BaseRule>();
-
-  static init() {
-    RulesMapping.forEach((rule) => {
-      this.add(rule.ruleName, rule.inst);
-    });
-    return this;
-  }
-
-  static add(ruleName: string, ruleInst: BaseRule): void {
-    this.rules.set(ruleName, ruleInst);
-  }
-
-  static get(ruleName: string): BaseRule {
-    const rule = this.rules.get(ruleName);
-    if (!rule) {
-      throw new Error(`Rule "${ruleName}" is not registered`);
-    }
-    return rule;
-  }
-
-  static validate(
-    rules: Rules,
-    fieldName: string,
-    val: string
-  ): ValidationResult[] {
+  // ...
+  static run(rules: Rules, fieldName: string, val: string): FieldResult {
     const rulekeys = Object.keys(rules);
 
     if (!rulekeys.length) {
-      return [{ isValid: true, res: null }];
+      return { isValid: true, res: null };
     }
 
-    return rulekeys.map((ruleKey) => {
+    const result = rulekeys.map((ruleKey) => {
       const rule = this.get(ruleKey);
       const arg = rules[ruleKey];
 
@@ -267,48 +202,95 @@ class Validator {
         res: rule.res({ val, name: fieldName, arg }),
       };
     });
-  }
 
-  static destroy() {
-    this.rules.clear();
+    const invalidRules = result.filter((r) => !r.isValid);
+    const isValid = invalidRules.length === 0;
+    const inValidRes = invalidRules.map((r) => r.res);
+
+    return {
+      isValid,
+      res: inValidRes || null,
+    };
   }
+  // ...
 }
-
-// export the instance of Validator as the instance of Validator
-export default Validator.init();
 ```
 
-### Step 3: Use the validator with Input
+### Step 3: Use the validator in your Input, EX: [textbox](https://github.com/duyetvv/react-validator-form/blob/main/src/components/textbox/index.tsx)
 
-- validate the input on blue event.
+- validate the input on blur/change event.
+
+  ```tsx
+  const validateInput = useCallback((value: string): boolean => {
+    const result = validator.run(rules, genericName || name, value);
+
+    setErrors(
+      result.res?.map((ele) => ({
+        code: ele.code || "",
+        message: ele.msg || "",
+      }))
+    );
+
+    return result.isValid;
+  }, []);
+
+  const onBlurInput = useCallback((evt: FocusEvent<HTMLInputElement>) => {
+    const { value } = evt.target;
+    validateInput(value);
+    // ...
+  }, []);
+
+  const onChangeInput = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target;
+    validateInput(value);
+    // ...
+  };
+  ```
+
+### Step 4: Build the [External Store]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/store.ts)
+
+### Step 5: Embed store to the form with validation
 
 ```tsx
-const onBlurInput = (evt: FocusEvent<HTMLInputElement>) => {
-  const { value } = evt.target;
+const store = createValidatorStore();
 
-  const result = validation.validate(rules, genericName || name, value);
+store.registerFields([
+  { name: "username", isValid: false },
+  { name: "password", isValid: false },
+]);
 
-  const errsMsg = result.reduce<Record<string, string>[]>(
-    (accumulator, ele) => {
-      if (!ele.isValid) {
-        accumulator.push({
-          code: ele.res?.code || "",
-          message: ele.res?.msg || "",
-        });
-      }
+function LoginWithStoreScreen() {
+  const formState = useSyncExternalStore(store.subscribe, store.getSnapshot);
 
-      return accumulator;
-    },
-    []
+  const submit = () => {
+    const message = formState ? "Form is valid" : "Form is not valid";
+    window.alert(message);
+  };
+
+  return (
+    <div>
+      <Form onSubmit={submit}>
+        <Textbox
+          type="text"
+          label="Username"
+          name="username"
+          rules={{ required: true, minLength: 5 }}
+          store={store}
+        />
+        <Textbox
+          type="text"
+          label="Password"
+          name="password"
+          rules={{ required: true, minLength: 8 }}
+          store={store}
+        />
+        <button>Submit</button>
+      </Form>
+    </div>
   );
-
-  setErrors(errsMsg);
-
-  if (typeof onChangeText === "function") {
-    onChangeText({ name, value });
-  }
-};
+}
 ```
-Refer full example input at: [textbox](https://github.com/duyetvv/react-validator-form/blob/main/src/components/textbox/index.tsx)
 
 ## License
+
+MIT License

@@ -1,4 +1,4 @@
-import type { RuleParam, RuleResponse } from "../types/rules";
+import type { RuleParam, RuleResponse } from "../types";
 
 export abstract class BaseRule {
   abstract test(params: RuleParam): boolean;

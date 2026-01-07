@@ -1,57 +1,47 @@
-import Form, { type FormProps } from "../components/form";
-import Textbox, { type TextBoxProps } from "../components/textbox";
+import { useSyncExternalStore } from "react";
+
+import Form from "../components/form";
+import Textbox from "../components/textbox";
 import { createValidatorStore } from "../validator/store";
-// import { useFormState } from "../validator/hook";
-// import { useSyncExternalStore } from "react";
 
-const createLoginFormStore = () => {
-  const store = createValidatorStore("login");
-  store.registerFields([
-    { name: "username", isValid: false },
-    { name: "password", isValid: false },
-  ]);
+const store = createValidatorStore();
 
-  // const formState = useSyncExternalStore(
-  //   store.subscribe,
-  //   store.getSnapshot,
-  //   store.getSnapshot
-  // );
+store.registerFields([
+  { name: "username", isValid: false },
+  { name: "password", isValid: false },
+]);
 
-  console.log("createLoginFormStore run", store, store.getSnapshot());
-  return {
-    isValid: store.getSnapshot().isValid,
-    Form: (props: FormProps) => <Form {...props} />,
-    Textbox: (props: TextBoxProps) => <Textbox {...props} store={store} />,
-  };
-};
+function LoginWithStoreScreen() {
+  const formState = useSyncExternalStore(store.subscribe, store.getSnapshot);
 
-const LoginForm = createLoginFormStore();
-
-function LoginScreen() {
   const submit = () => {
-    const message = LoginForm.isValid ? "Form is valid" : "Form is not valid";
+    const message = formState ? "Form is valid" : "Form is not valid";
     window.alert(message);
   };
 
   return (
     <div>
-      <LoginForm.Form onSubmit={submit}>
-        <LoginForm.Textbox
+      <Form onSubmit={submit}>
+        <Textbox
           type="text"
           label="Username"
           name="username"
           rules={{ required: true, minLength: 5 }}
+          store={store}
         />
-        <LoginForm.Textbox
+        <Textbox
           type="text"
           label="Password"
           name="password"
           rules={{ required: true, minLength: 8 }}
+          store={store}
         />
         <button>Submit</button>
-      </LoginForm.Form>
+        <hr />
+        <span>Form is {formState ? "valid" : "not valid"}</span>
+      </Form>
     </div>
   );
 }
 
-export default LoginScreen;
+export default LoginWithStoreScreen;
