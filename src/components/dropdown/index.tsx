@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { Rules } from "../../types/rules";
 import Validator, { type ValidatorStore } from "../../validator";
+import type { Rules } from "../../types";
 
 import "./styles.scss";
 
@@ -45,9 +45,10 @@ function Dropdown<T>({
   hiddenInput = true,
   onChange,
 }: DropdownProps<T>) {
+  const [errors, setErrors] = useState<Record<string, string>[]>();
   const [selected, setSelected] = useState<FormattedItem | null>(null);
   const [toggled, setToggled] = useState<boolean>(false);
-  const validation = useMemo(() => Validator.initStore(store), []);
+  const validator = useMemo(() => Validator.initStore(store), []);
 
   useEffect(() => {
     if (source) {
@@ -56,6 +57,19 @@ function Dropdown<T>({
       onChange(name, currItem);
     }
   }, [source]);
+
+  const validateInput = useCallback((value: string): boolean => {
+    const result = validator.run(rules, name, value);
+
+    setErrors(
+      result.res?.map((ele) => ({
+        code: ele.code || "",
+        message: ele.msg || "",
+      }))
+    );
+
+    return result.isValid;
+  }, []);
 
   const formatItem = useCallback((item: T | null): FormattedItem | null => {
     if (item) {
@@ -75,18 +89,7 @@ function Dropdown<T>({
     setSelected(currItem);
     setToggled(false);
 
-    const result = validation.validate(rules, name, currItem?.value || "");
-
-    store &&
-      store.updateField(name, {
-        isValid: result.length === 0,
-        res: {
-          name: name,
-          arg: result[0].res?.arg || "",
-          code: result[0].res?.code || "",
-          msg: result[0].res?.msg || "",
-        },
-      });
+    validateInput(currItem?.value || "");
 
     onChange(name, item);
   }, []);
@@ -107,6 +110,14 @@ function Dropdown<T>({
       ) : (
         ""
       )}
+
+      {errors && errors.length
+        ? errors.map((err) => (
+            <span key={err["code"]} className="textbox__error">
+              {err["message"]}
+            </span>
+          ))
+        : ""}
 
       {toggled && source && source.length ? (
         <div className="dropdown-menu">

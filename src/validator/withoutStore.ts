@@ -1,8 +1,7 @@
 import type { BaseRule } from "../rules/base";
+import type { FieldResult, Rules } from "../types";
 
 import { RulesMapping } from "./mapping";
-import { type Rules } from "../types/rules";
-import type { ValidationResult } from "../types/validation";
 
 /**
  * @class Validator
@@ -10,14 +9,13 @@ import type { ValidationResult } from "../types/validation";
  * It is initialized with a set of default rules and can be extended with custom rules.
  * It can also be connected to a store to keep track of the validation state of a form.
  */
-class Validator {
+class ValidatorWithoutStore {
   /**
    * A map to store the registered validation rules.
    * @private
    * @static
    */
   private static rules = new Map<string, BaseRule>();
-
 
   /**
    * Initializes the validator by registering the rules from RulesMapping.
@@ -65,18 +63,14 @@ class Validator {
    * @param val - The value to validate.
    * @returns An array of validation results for each rule.
    */
-  static validate(
-    rules: Rules,
-    fieldName: string,
-    val: string
-  ): ValidationResult[] {
+  static run(rules: Rules, fieldName: string, val: string): FieldResult {
     const rulekeys = Object.keys(rules);
 
     if (!rulekeys.length) {
-      return [{ isValid: true, res: null }];
+      return { isValid: true, res: null };
     }
 
-    return rulekeys.map((ruleKey) => {
+    const result = rulekeys.map((ruleKey) => {
       const rule = this.get(ruleKey);
       const arg = rules[ruleKey];
 
@@ -85,6 +79,14 @@ class Validator {
         res: rule.res({ val, name: fieldName, arg }),
       };
     });
+
+    const invalidRules = result.filter((r) => !r.isValid);
+    const inValidRes = invalidRules.map((r) => r.res);
+
+    return {
+      isValid: invalidRules.length === 0,
+      res: inValidRes || null,
+    };
   }
 
   /**
@@ -98,5 +100,4 @@ class Validator {
 }
 
 // export the instance of Validator af
-export default Validator.init();
-
+export default ValidatorWithoutStore.init();

@@ -1,5 +1,4 @@
-import { RuleKey } from "../types/rules";
-
+import { RuleKey } from "../types";
 import RequiredRuleInst from "../rules/required";
 import NumberRule from "../rules/number";
 import EmailRule from "../rules/email";

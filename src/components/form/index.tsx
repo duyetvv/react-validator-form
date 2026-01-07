@@ -1,5 +1,7 @@
 import React from "react";
 
+import './styles.scss';
+
 export type FormProps = {
   onSubmit: () => void;
   children: React.ReactNode;

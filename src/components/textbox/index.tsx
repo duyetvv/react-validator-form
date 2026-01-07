@@ -1,12 +1,20 @@
-import { type FocusEvent, useMemo, useState } from "react";
-import { RuleKey, type Rules } from "../../types/rules";
+import {
+  type ChangeEvent,
+  type FocusEvent,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+
+import { type Rules, RuleKey } from "../../types";
 import Validator, { type ValidatorStore } from "../../validator";
 
 import "./styles.scss";
 
-export type TextChangeEvent = {
+export type InteractEvent = {
   name: string;
   value: string;
+  isValid?: boolean;
 };
 
 export interface TextBoxProps {
@@ -18,7 +26,8 @@ export interface TextBoxProps {
   genericName?: string;
   rules?: Rules;
   store?: ValidatorStore;
-  onChangeText?: (evt: TextChangeEvent) => void;
+  onChangeText?: (evt: InteractEvent) => void;
+  onBlurText?: (evt: InteractEvent) => void;
   [key: string]: any;
 }
 
@@ -30,33 +39,39 @@ function TextBox({
   placeholder,
   rules = {},
   onChangeText,
+  onBlurText,
   genericName,
   store,
   ...rest
 }: TextBoxProps) {
   const [errors, setErrors] = useState<Record<string, string>[]>();
-  const validation = useMemo(() => Validator.initStore(store), []);
+  const validator = useMemo(() => Validator.initStore(store), []);
 
-  const onBlurInput = (evt: FocusEvent<HTMLInputElement>) => {
-    const { value } = evt.target;
+  const validateInput = useCallback((value: string): boolean => {
+    const result = validator.run(rules, genericName || name, value);
 
-    const result = validation.validate(rules, genericName || name, value);
-
-    const errsMsg = result.reduce<Record<string, string>[]>(
-      (accumulator, ele) => {
-        if (!ele.isValid) {
-          accumulator.push({
-            code: ele.res?.code || "",
-            message: ele.res?.msg || "",
-          });
-        }
-
-        return accumulator;
-      },
-      []
+    setErrors(
+      result.res?.map((ele) => ({
+        code: ele.code || "",
+        message: ele.msg || "",
+      }))
     );
 
-    setErrors(errsMsg);
+    return result.isValid;
+  }, []);
+
+  const onBlurInput = useCallback((evt: FocusEvent<HTMLInputElement>) => {
+    const { value } = evt.target;
+    validateInput(value);
+
+    if (typeof onBlurText === "function") {
+      onBlurText({ name, value });
+    }
+  }, []);
+
+  const onChangeInput = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target;
+    validateInput(value);
 
     if (typeof onChangeText === "function") {
       onChangeText({ name, value });
@@ -81,6 +96,7 @@ function TextBox({
         defaultValue={defVal}
         className={`textbox ${errors && errors.length ? "error" : ""}`}
         onBlur={onBlurInput}
+        onChange={onChangeInput}
         {...rest}
       />
       {errors && errors.length
