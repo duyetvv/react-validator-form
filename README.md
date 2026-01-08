@@ -144,7 +144,7 @@ export const ErrorMessage = {
     }
     ```
 
-#### 1.2 Create the specific validator rule. EX: [Required Rule]|(https://github.com/duyetvv/react-validator-form/blob/main/src/rules/required.ts)
+#### 1.2 Create the specific validator rule. EX: [Required Rule](https://github.com/duyetvv/react-validator-form/blob/main/src/rules/required.ts)
 
     ```ts
     class RequiredRule extends BaseRule {
@@ -170,7 +170,7 @@ export const ErrorMessage = {
 
 ### Step 2: Create the validator
 
-#### 2.1 Create the RulesMapping factory [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/mapping.ts)
+#### 2.1 Create the RulesMapping factory [code](https://github.com/duyetvv/react-validator-form/blob/main/src/validator/mapping.ts)
 
 ```ts
 export const RulesMapping = [
@@ -180,7 +180,7 @@ export const RulesMapping = [
 ];
 ```
 
-#### 2.2 Create the Validator class at link with the run function at: [code]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/index.ts)
+#### 2.2 Create the Validator class at link with the run function at: [code](https://github.com/duyetvv/react-validator-form/blob/main/src/validator/index.ts)
 
 ```ts
 class Validator {
@@ -247,7 +247,7 @@ class Validator {
   };
   ```
 
-### Step 4: Build the [External Store]|(https://github.com/duyetvv/react-validator-form/blob/main/src/validator/store.ts)
+### Step 4: Build the [External Store](https://github.com/duyetvv/react-validator-form/blob/main/src/validator/store.ts)
 
 ### Step 5: Embed store to the form with validation
 
@@ -290,6 +290,8 @@ function LoginWithStoreScreen() {
   );
 }
 ```
+
+## Live Demo [codesandbox](https://codesandbox.io/p/sandbox/fchvgf?file=%2Fsrc%2Fcomponents%2Ftextbox%2Fstyles.scss%3A13%2C14)
 
 ## License
 
