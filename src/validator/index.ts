@@ -19,7 +19,7 @@ class Validator {
    * @param storeInstance - An optional validator store instance.
    * @returns The Validator class for chaining.
    */
-  static initStore(storeInstance?: ValidatorStore) {
+  static bindStore(storeInstance?: ValidatorStore) {
     this.store = storeInstance || null;
     return this;
   }

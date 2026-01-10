@@ -46,7 +46,7 @@ function TextBox({
   ...rest
 }: TextBoxProps) {
   const [errors, setErrors] = useState<Record<string, string>[]>();
-  const validator = useMemo(() => Validator.initStore(store), []);
+  const validator = useMemo(() => Validator.bindStore(store), []);
 
   const validateInput = useCallback((value: string): boolean => {
     if (!rules) return true;
