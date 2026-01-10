@@ -36,7 +36,11 @@ function LoginWithoutStoreScreen() {
           onChangeText={onChangeText}
           rules={{ required: true, minLength: 8 }}
         />
+
         <button>Submit</button>
+
+        <hr />
+        <span>Form is {isFormValid ? "valid" : "not valid"}</span>
       </Form>
     </div>
   );

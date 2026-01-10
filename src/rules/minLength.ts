@@ -2,9 +2,11 @@ import { BaseRule } from "./base";
 import { ErrorCode } from "../assets/data/code";
 import { ErrorMessage } from "../assets/data/message";
 
-import type { RuleParam, RuleResponse } from "../types";
+import { RuleKey, type RuleParam, type RuleResponse } from "../types";
 
 class MinLengthRule extends BaseRule {
+  ruleKey = RuleKey.minLength;
+
   test({ val, arg }: RuleParam): boolean {
     return (
       !!arg &&
@@ -25,4 +27,4 @@ class MinLengthRule extends BaseRule {
   }
 }
 
-export default MinLengthRule;
+export default new MinLengthRule();

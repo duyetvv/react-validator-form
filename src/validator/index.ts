@@ -1,43 +1,17 @@
-import type { BaseRule } from "../rules/base";
-
-import type { FieldResult, Rules } from "../types";
+import type { FieldResult, Rules, RuleKey } from "../types";
 import { type ValidatorStore } from "./store";
-
-import { RulesMapping } from "./mapping";
+import registryRules from "./registry";
 
 /**
- * @class Validator
- * @description A static class to manage validation rules and perform validation.
- * It is initialized with a set of default rules and can be extended with custom rules.
- * It can also be connected to a store to keep track of the validation state of a form.
+ * @class Validator connected to a store to keep track of the validation state of a form.
  */
 class Validator {
-  /**
-   * A map to store the registered validation rules.
-   * @private
-   * @static
-   */
-  private static rules = new Map<string, BaseRule>();
   /**
    * The validator store instance.
    * @private
    * @static
    */
   private static store: ValidatorStore | null = null;
-
-  /**
-   * Initializes the validator by registering the default rules from RulesMapping.
-   * This method should be called before any other method of the class.
-   * @static
-   * @returns The Validator class for chaining.
-   */
-  static init() {
-    RulesMapping.forEach((rule) => {
-      this.add(rule.ruleName, rule.inst);
-    });
-    return this;
-  }
-
   /**
    * Initializes the validator store.
    * The store is used to keep track of the validation state of the form fields.
@@ -49,32 +23,6 @@ class Validator {
     this.store = storeInstance || null;
     return this;
   }
-
-  /**
-   * Adds a new validation rule to the validator.
-   * @static
-   * @param ruleName - The name of the rule.
-   * @param ruleInst - The rule instance, which should be a class that extends BaseRule.
-   */
-  static add(ruleName: string, ruleInst: BaseRule): void {
-    this.rules.set(ruleName, ruleInst);
-  }
-
-  /**
-   * Gets a validation rule by name.
-   * @static
-   * @param ruleName - The name of the rule.
-   * @returns The rule instance.
-   * @throws An error if the rule is not registered.
-   */
-  static get(ruleName: string): BaseRule {
-    const rule = this.rules.get(ruleName);
-    if (!rule) {
-      throw new Error(`Rule "${ruleName}" is not registered`);
-    }
-    return rule;
-  }
-
   /**
    * Validates a value against a set of rules.
    * @static
@@ -90,9 +38,15 @@ class Validator {
       return { isValid: true, res: null };
     }
 
-    const result = rulekeys.map((ruleKey) => {
-      const rule = this.get(ruleKey);
+    const validatedRules = rulekeys.map((key) => {
+      const ruleKey = key as RuleKey;
       const arg = rules[ruleKey];
+
+      const rule = registryRules.get(ruleKey);
+
+      if (!rule) {
+        throw new Error(`Rule "${key}" is not registered`);
+      }
 
       return {
         isValid: rule.test({ val, name: fieldName, arg }),
@@ -100,21 +54,17 @@ class Validator {
       };
     });
 
-    const invalidRules = result.filter((r) => !r.isValid);
-    const isValid = invalidRules.length === 0;
-    const inValidRes = invalidRules.map((r) => r.res);
+    const invalidRules = validatedRules.filter((r) => !r.isValid);
+    const fieldResult = {
+      isValid: invalidRules.length === 0,
+      res: invalidRules.map((r) => r.res) || null,
+    };
 
     if (this.store) {
-      this.store.updateField(fieldName, {
-        isValid,
-        res: inValidRes || null,
-      });
+      this.store.updateField(fieldName, fieldResult);
     }
 
-    return {
-      isValid,
-      res: inValidRes || null,
-    };
+    return fieldResult;
   }
 
   /**
@@ -123,10 +73,8 @@ class Validator {
    * @static
    */
   static destroy() {
-    this.rules.clear();
+    registryRules.destroy();
   }
 }
 
-export default Validator.init();
-
-export { type ValidatorStore };
+export default Validator;

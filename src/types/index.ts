@@ -29,7 +29,12 @@ export type RuleName =
 
 /**
  * Type for a collection of rules.
- * It's a key-value pair where the key is the rule name 
+ * It's a key-value pair where the key is the rule name
+ * and the value is the rule argument.
+ */
+/**
+ * Type for a collection of rules.
+ * It's a key-value pair where the key is the rule name
  * and the value is the rule argument.
  */
 export type Rules = {

@@ -2,9 +2,11 @@ import { BaseRule } from "./base";
 import { ErrorCode } from "../assets/data/code";
 import { ErrorMessage } from "../assets/data/message";
 
-import type { RuleParam, RuleResponse } from "../types";
+import { RuleKey, type RuleParam, type RuleResponse } from "../types";
 
 class RequiredRule extends BaseRule {
+  ruleKey = RuleKey.required;
+
   test({ val }: RuleParam): boolean {
     return !!val && val.length > 0;
   }
@@ -23,4 +25,4 @@ class RequiredRule extends BaseRule {
   }
 }
 
-export default RequiredRule;
+export default new RequiredRule();

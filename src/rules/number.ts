@@ -2,9 +2,11 @@ import { BaseRule } from "./base";
 import { ErrorCode } from "../assets/data/code";
 import { ErrorMessage } from "../assets/data/message";
 
-import type { RuleParam, RuleResponse } from "../types";
+import { RuleKey, type RuleParam, type RuleResponse } from "../types";
 
 class NumberRule extends BaseRule {
+  ruleKey = RuleKey.number;
+
   test({ val }: RuleParam): boolean {
     return !val || !isNaN(Number(val?.trim()));
   }
@@ -18,4 +20,4 @@ class NumberRule extends BaseRule {
   }
 }
 
-export default NumberRule;
+export default new NumberRule();
