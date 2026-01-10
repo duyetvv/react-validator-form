@@ -49,7 +49,7 @@ function Dropdown<T>({
   const [errors, setErrors] = useState<Record<string, string>[]>();
   const [selected, setSelected] = useState<FormattedItem | null>(null);
   const [toggled, setToggled] = useState<boolean>(false);
-  const validator = useMemo(() => Validator.initStore(store), []);
+  const validator = useMemo(() => Validator.bindStore(store), []);
 
   useEffect(() => {
     if (source) {
