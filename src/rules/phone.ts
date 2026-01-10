@@ -2,11 +2,13 @@ import { BaseRule } from "./base";
 import { ErrorCode } from "../assets/data/code";
 import { ErrorMessage } from "../assets/data/message";
 
-import type { RuleParam, RuleResponse } from "../types";
+import { RuleKey, type RuleParam, type RuleResponse } from "../types";
 
 const phoneReg = new RegExp("^(0|84)(2|3|5|7|8|9)([0-9]{8})$");
 
 class PhoneRule extends BaseRule {
+  ruleKey = RuleKey.phone;
+
   test({ val }: RuleParam): boolean {
     return !val || phoneReg.test(val);
   }
@@ -24,4 +26,4 @@ class PhoneRule extends BaseRule {
   }
 }
 
-export default PhoneRule;
+export default new PhoneRule();

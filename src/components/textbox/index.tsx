@@ -7,7 +7,8 @@ import {
 } from "react";
 
 import { type Rules, RuleKey } from "../../types";
-import Validator, { type ValidatorStore } from "../../validator";
+import type { ValidatorStore } from "../../validator/store";
+import Validator from "../../validator";
 
 import "./styles.scss";
 
@@ -37,7 +38,7 @@ function TextBox({
   defVal,
   label,
   placeholder,
-  rules = {},
+  rules,
   onChangeText,
   onBlurText,
   genericName,
@@ -48,6 +49,8 @@ function TextBox({
   const validator = useMemo(() => Validator.initStore(store), []);
 
   const validateInput = useCallback((value: string): boolean => {
+    if (!rules) return true;
+
     const result = validator.run(rules, genericName || name, value);
 
     setErrors(
@@ -83,7 +86,7 @@ function TextBox({
       <label
         htmlFor={`${name}_textbox`}
         className={`textbox__label ${
-          rules[RuleKey.required] ? "required" : ""
+          rules && rules[RuleKey.required] ? "required" : ""
         }`}
       >
         {label}

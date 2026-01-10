@@ -2,9 +2,11 @@ import { BaseRule } from "./base";
 import { ErrorCode } from "../assets/data/code";
 import { ErrorMessage } from "../assets/data/message";
 
-import type { RuleParam, RuleResponse } from "../types";
+import { RuleKey, type RuleParam, type RuleResponse } from "../types";
 
 class MaxLengthRule extends BaseRule {
+  ruleKey = RuleKey.maxLength;
+
   test({ val, arg }: RuleParam): boolean {
     return (
       !!arg &&
@@ -25,4 +27,4 @@ class MaxLengthRule extends BaseRule {
   }
 }
 
-export default MaxLengthRule;
+export default new MaxLengthRule();

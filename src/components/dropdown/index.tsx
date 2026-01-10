@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import Validator, { type ValidatorStore } from "../../validator";
+import Validator from "../../validator";
 import type { Rules } from "../../types";
+import type { ValidatorStore } from "../../validator/store";
 
 import "./styles.scss";
 
