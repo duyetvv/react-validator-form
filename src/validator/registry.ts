@@ -9,6 +9,7 @@ import minLengthRule from "../rules/minLength";
 import phoneRule from "../rules/phone";
 import duplicatedRule from "../rules/duplicated";
 
+
 const Rules: BaseRule[] = [
   requiredRule,
   numberRule,
