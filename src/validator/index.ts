@@ -8,28 +8,27 @@ import registryRules from "./registry";
 class Validator {
   /**
    * The validator store instance.
-   * @private
-   * @static
    */
   private static store: ValidatorStore | null = null;
+
   /**
    * Initializes the validator store.
-   * The store is used to keep track of the validation state of the form fields.
-   * @static
    * @param storeInstance - An optional validator store instance.
    * @returns The Validator class for chaining.
+   * This mmethod apply the "Builder Pattern for with the step add Store"
    */
-  static bindStore(storeInstance?: ValidatorStore) {
+  static bindStore(storeInstance?: ValidatorStore): Validator {
     this.store = storeInstance || null;
     return this;
   }
+
   /**
    * Validates a value against a set of rules.
    * @static
    * @param rules - The rules to validate against.
    * @param fieldName - The name of the field being validated.
    * @param val - The value to validate.
-   * @returns An array of validation results for each rule.
+   * @returns An object instance of FieldResult { isvalid, res}
    */
   static run(rules: Rules, fieldName: string, val: string): FieldResult {
     const rulekeys = Object.keys(rules);
